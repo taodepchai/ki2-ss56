@@ -9,24 +9,72 @@ const ProductList: React.FC = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   useEffect(() => {
-    // Replace with your actual API endpoint
-    fetch('http://localhost:3000/products')
-      .then(response => response.json())
-      .then((data: Product[]) => setProducts(data));
+    fetchProducts();
   }, []);
 
-  const addProduct = (product: Product) => {
-    setProducts([...products, product]);
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/products');
+      const data: Product[] = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    }
   };
 
-  const updateProduct = (updatedProduct: Product) => {
-    setProducts(products.map(product => (product.id === updatedProduct.id ? updatedProduct : product)));
-    setSelectedProduct(null);
-    setIsEditing(false);
+  const addProduct = async (product: Product) => {
+    try {
+      const response = await fetch('http://localhost:3000/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+      if (response.ok) {
+        fetchProducts();
+      } else {
+        console.error('Failed to add product');
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
   };
 
-  const deleteProduct = (id: number) => {
-    setProducts(products.filter(product => product.id !== id));
+  const updateProduct = async (updatedProduct: Product) => {
+    try {
+      const response = await fetch(`http://localhost:3000/products/${updatedProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProduct),
+      });
+      if (response.ok) {
+        fetchProducts();
+        setSelectedProduct(null);
+        setIsEditing(false);
+      } else {
+        console.error('Failed to update product');
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+    }
+  };
+
+  const deleteProduct = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:3000/products/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        fetchProducts();
+      } else {
+        console.error('Failed to delete product');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    }
   };
 
   const editProduct = (product: Product) => {
